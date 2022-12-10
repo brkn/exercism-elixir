@@ -35,7 +35,7 @@ defmodule RationalNumbers do
   Exponentiation of a rational number by an integer
   """
   @spec pow_rational(a :: rational, n :: integer) :: rational
-  def pow_rational({a_num, a_den}, n) when n == 0, do: {1, 1}
+  def pow_rational(_a, n) when n == 0, do: {1, 1}
   def pow_rational({a_num, a_den}, n) when n > 0, do: {a_num ** n, a_den ** n} |> fix_signs
   def pow_rational({a_num, a_den}, n) when n < 0, do: {a_den ** (n * -1), a_num ** (n * -1)} |> fix_signs
 
