@@ -1,23 +1,21 @@
 defmodule Username do
-  @german_chars %{
-    "ä" =>	"ae"
-    "ö" =>	"oe"
-    "ü" =>	"ue"
-    "ß" =>	"ss"
-  }
-
-  def sanitize(""), do: ""
+  def sanitize(''), do: ''
 
   def sanitize(username) do
-    username |> String.split |> Enum.filter(fn x -> lowercase? x end)
+    username
+    |> Enum.flat_map(&subsitute_german_chars/1)
+    |> Enum.filter(fn char -> lowercase?(char) or char == ?_ end)
   end
 
-  defp lowercase?(char), do: char != char |> String.upcase()
+  defp lowercase?(char), do: char >= ?a and char <= ?z
+
+  defp subsitute_german_chars(char) do
+    case char do
+      ?ä -> 'ae'
+      ?ö -> 'oe'
+      ?ü -> 'ue'
+      ?ß -> 'ss'
+      _ -> [char]
+    end
+  end
 end
-
-# ä becomes ae
-# ö becomes oe
-# ü becomes ue
-# ß becomes ss
-
-# Please implement the sanitize/1 function
