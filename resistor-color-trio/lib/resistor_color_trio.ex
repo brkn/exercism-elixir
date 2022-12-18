@@ -17,14 +17,9 @@ defmodule ResistorColorTrio do
   """
   @spec label(colors :: [atom]) :: {number, :ohms | :kiloohms}
   def label(colors) do
-    {zeroes, mapped} = colors
-      |> Enum.take(3)
-      |> Enum.map(&@code_mapping[&1])
-      |> List.pop_at(2)
+    [first, second, zeroes] = colors |> Enum.map(&@code_mapping[&1])
 
-    ohms = mapped
-      |> Enum.concat(List.duplicate(0, zeroes))
-      |> Integer.undigits()
+    ohms = Integer.undigits [first, second | List.duplicate(0, zeroes)]
 
     if rem(ohms, 1000) != 0 do
       {ohms, :ohms}
@@ -32,5 +27,4 @@ defmodule ResistorColorTrio do
       {ohms / 1000, :kiloohms}
     end
   end
-
 end
