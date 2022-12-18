@@ -16,10 +16,11 @@
       "request": "launch",
       "task": "test",
       "taskArgs": [
-        "--trace"
+        "--trace",
+        "test/wine_cellar_test.exs:64"
       ],
       "startApps": true,
-      "projectDir": "${workspaceRoot}/file-sniffer",
+      "projectDir": "${workspaceRoot}/wine-cellar",
       "requireFiles": [
         "test/**/test_helper.exs",
         "test/**/*_test.exs"
