@@ -17,10 +17,9 @@
       "task": "test",
       "taskArgs": [
         "--trace",
-        "test/wine_cellar_test.exs:64"
       ],
       "startApps": true,
-      "projectDir": "${workspaceRoot}/wine-cellar",
+      "projectDir": "${workspaceRoot}/roman-numerals",
       "requireFiles": [
         "test/**/test_helper.exs",
         "test/**/*_test.exs"
