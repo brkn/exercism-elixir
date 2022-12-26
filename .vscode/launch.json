@@ -8,7 +8,7 @@
       "type": "mix_task",
       "name": "mix (Default task)",
       "request": "launch",
-      "projectDir": "${workspaceRoot}/german-sysadmin"
+      "projectDir": "${workspaceRoot}/zebra-puzzle"
     },
     {
       "type": "mix_task",
