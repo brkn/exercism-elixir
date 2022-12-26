@@ -11,15 +11,21 @@ defmodule PrimeFactors do
   def factors_for(1), do: []
 
   def factors_for(number) do
-    limit = trunc(:math.sqrt(number)) + 1
-    head =
-      2..limit
+    divider =
+      number
+      |> range
       |> Enum.find(fn x -> rem(number, x) == 0 end)
+      |> case do
+        nil -> number
+        x -> x
+      end
 
-    divider = if is_nil(head), do: number, else: head
+    [divider | number |> div(divider) |> factors_for]
+  end
 
-    remaining = div(number, divider)
+  defp range(number) do
+    upperbound = :math.sqrt(number) |> floor |> max(2)
 
-    [divider | factors_for(remaining)]
+    2..upperbound
   end
 end
