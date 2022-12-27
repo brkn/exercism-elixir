@@ -17,7 +17,7 @@ defmodule FoodChain do
   @spec recite(start :: integer, stop :: integer) :: String.t()
   def recite(start, stop) do
     (start - 1)..(stop - 1)
-    |> Enum.flat_map(& verse &1)
+    |> Enum.flat_map(&verse/1)
     |> Enum.join("\n")
   end
 
@@ -37,7 +37,7 @@ defmodule FoodChain do
   end
 
   defp tail(7), do: []
-  defp tail(index), do: index..0 |> Enum.map(&she_swallowed(&1))
+  defp tail(index), do: index..0 |> Enum.map(&she_swallowed/1)
 
   defp she_swallowed(0), do: "I don't know why she swallowed the fly. Perhaps she'll die.\n"
   defp she_swallowed(2),
