@@ -4,18 +4,7 @@ defmodule TakeANumberDeluxe do
   # Client API
 
   @spec start_link(keyword()) :: {:ok, pid()} | {:error, atom()}
-  def start_link(init_arg) do
-    with {:ok, state} <-
-           TakeANumberDeluxe.State.new(
-             Keyword.fetch!(init_arg, :min_number),
-             Keyword.fetch!(init_arg, :max_number),
-             Keyword.get(init_arg, :auto_shutdown_timeout, :infinity)
-           ) do
-      GenServer.start_link(__MODULE__, state)
-    else
-      _ -> {:error, :invalid_configuration}
-    end
-  end
+  def start_link(init_arg), do: GenServer.start_link(__MODULE__, init_arg)
 
   @spec report_state(pid()) :: TakeANumberDeluxe.State.t()
   def report_state(machine) do
@@ -40,58 +29,60 @@ defmodule TakeANumberDeluxe do
   # Server callbacks
 
   @impl GenServer
-  def init(%{auto_shutdown_timeout: auto_shutdown_timeout} = state),
-    do: {:ok, state, auto_shutdown_timeout}
+  def init(init_arg) do
+    with {:ok, state} <-
+           TakeANumberDeluxe.State.new(
+             Keyword.fetch!(init_arg, :min_number),
+             Keyword.fetch!(init_arg, :max_number),
+             Keyword.get(init_arg, :auto_shutdown_timeout, :infinity)
+           ) do
+      {:ok, state, state.auto_shutdown_timeout}
+    else
+      _ -> {:stop, :invalid_configuration}
+    end
+  end
 
   @impl GenServer
-  def handle_call(
-        :report_state,
-        _from,
-        %{auto_shutdown_timeout: auto_shutdown_timeout} = machine
-      ),
-      do: {:reply, machine, machine, auto_shutdown_timeout}
+  def handle_call(:report_state, _from, state),
+    do: {:reply, state, state, state.auto_shutdown_timeout}
 
   @impl GenServer
   def handle_call(:queue_new_number, _from, state) do
     case TakeANumberDeluxe.State.queue_new_number(state) do
-      {:ok, new_number, new_state} -> {:reply, {:ok, new_number}, {:ok, new_state}}
-      {:error, error} -> {:reply, {:error, error}, state}
+      {:ok, next_available_number, new_state} ->
+        {:reply, {:ok, next_available_number}, new_state, state.auto_shutdown_timeout}
+
+      {:error, error} ->
+        {:reply, {:error, error}, state, state.auto_shutdown_timeout}
     end
   end
 
   @impl GenServer
-  def handle_call({:serve_next_queued_number, priority_number}, _from, {:ok, state} = machine) do
+  def handle_call({:serve_next_queued_number, priority_number}, _from, state) do
     case TakeANumberDeluxe.State.serve_next_queued_number(state, priority_number) do
-      {:ok, next_number, new_state} -> {:reply, {:ok, next_number}, {:ok, new_state}}
-      {:error, error} -> {:reply, {:error, error}, machine}
+      {:ok, next_number, new_state} ->
+        {:reply, {:ok, next_number}, new_state, state.auto_shutdown_timeout}
+
+      {:error, error} ->
+        {:reply, {:error, error}, state, state.auto_shutdown_timeout}
     end
   end
 
   @impl GenServer
-  def handle_call(
-        :reset_state,
-        _from,
-        {:ok,
-         %{
-           min_number: min_number,
-           max_number: max_number,
-           auto_shutdown_timeout: auto_shutdown_timeout
-         }}
-      ) do
-    {
-      :reply,
-      :ok,
-      TakeANumberDeluxe.State.new(min_number, max_number, auto_shutdown_timeout),
-      auto_shutdown_timeout
-    }
+  def handle_call(:reset_state, _from, state) do
+    with {:ok, new_state} <-
+           TakeANumberDeluxe.State.new(
+             state.min_number,
+             state.max_number,
+             state.auto_shutdown_timeout
+           ) do
+      {:reply, :ok, new_state, new_state.auto_shutdown_timeout}
+    else
+      error -> error
+    end
   end
 
-  # @impl GenServer
-  # def handle_info(:timeout, _state) do
-  #   exit
-  # end
-
-  # def handle_info(_msg, state) do
-  #   {:noreply, state, state.auto_shutdown_timeout}
-  # end
+  @impl GenServer
+  def handle_info(:timeout, state), do: {:stop, :normal, state}
+  def handle_info(_msg, state), do: {:noreply, state, state.auto_shutdown_timeout}
 end
