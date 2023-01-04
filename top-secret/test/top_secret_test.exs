@@ -183,7 +183,7 @@ defmodule TopSecretTest do
   end
 
   describe "decode_secret_message/1" do
-    @tag task_id: 5
+    @tag task_id: 9
     test "decodes a secret message from a single function definition" do
       code = """
       defmodule Notebook do
@@ -250,7 +250,7 @@ defmodule TopSecretTest do
       assert TopSecret.decode_secret_message(code) == secret_message
     end
 
-    @tag task_id: 5
+    @tag task_id: 8
     test "decodes another secret message from multiple modules" do
       code = """
       defmodule IOHelpers do
