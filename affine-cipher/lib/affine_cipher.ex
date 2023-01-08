@@ -8,7 +8,7 @@ defmodule AffineCipher do
   Encode an encrypted message using a key
   """
   @spec encode(key :: key(), message :: String.t()) :: {:ok, String.t()} | {:error, String.t()}
-  def encode(%{a: a, b: b}, message)
+  def encode(%{a: a, b: _b}, _message)
       when rem(a, 2) == 0
       when rem(a, 13) == 0,
       do: {:error, "a and m must be coprime."}
@@ -39,7 +39,7 @@ defmodule AffineCipher do
         |> String.replace(" ", "")
         |> String.split("", trim: true)
         |> Enum.map(fn char -> decode_char(char, %{mmi: mmi, b: b}) end)
-        |> List.to_string
+        |> List.to_string()
       }
     else
       err -> err
@@ -56,14 +56,14 @@ defmodule AffineCipher do
 
   defp decode_char(<<charpoint>> = char, %{mmi: mmi, b: b}) do
     case Integer.parse(char) do
-      :error -> Integer.mod(mmi * ((charpoint - ?a) -b), 26) + ?a
+      :error -> Integer.mod(mmi * (charpoint - ?a - b), 26) + ?a
       _ -> charpoint
     end
   end
 
   defp to_mmi(a, possible_mmi \\ 1)
 
-  defp to_mmi(a, possible_mmi) when possible_mmi == 26, do: {:error, "a and m must be coprime."}
+  defp to_mmi(_a, possible_mmi) when possible_mmi == 26, do: {:error, "a and m must be coprime."}
 
   defp to_mmi(a, possible_mmi) do
     cond do
