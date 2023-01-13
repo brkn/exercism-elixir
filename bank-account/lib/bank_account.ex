@@ -21,19 +21,16 @@ defmodule BankAccount do
   Close the bank. Makes the account unavailable.
   """
   @spec close_bank(account) :: none
-  def close_bank(account) do
-    account |> Agent.stop()
-  end
+  def close_bank(account), do: account |> Agent.stop()
 
   @doc """
   Get the account's balance.
   """
   @spec balance(account) :: integer
   def balance(account) do
-    with balance <- Agent.get(account, fn state -> state end) do
-      balance
-    else
-      err -> err
+    cond do
+      Process.alive?(account) -> Agent.get(account, fn state -> state end)
+      true -> {:error, :account_closed}
     end
   end
 
@@ -42,6 +39,9 @@ defmodule BankAccount do
   """
   @spec update(account, integer) :: any
   def update(account, amount) do
-    account |> Agent.update(fn state -> state + amount end)
+    cond do
+      Process.alive?(account) -> account |> Agent.update(fn state -> state + amount end)
+      true -> {:error, :account_closed}
+    end
   end
 end
