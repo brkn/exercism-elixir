@@ -1,4 +1,5 @@
 defmodule Frequency do
+  @regex ~r/[\p{L}]/u
   @doc """
   Count letter frequency in parallel.
 
@@ -11,25 +12,23 @@ defmodule Frequency do
     do:
       texts
       |> Stream.flat_map(fn text ->
-        text
-        |> Stream.unfold(fn
+        Stream.unfold(text, fn
           "" -> nil
           str -> String.split_at(str, chunk_count(text, workers))
         end)
       end)
-      |> Task.async_stream(&asd/1, max_concurrency: workers)
+      |> Task.async_stream(&chunk_frequency/1, max_concurrency: workers)
       |> Enum.reduce(%{}, fn {:ok, freq}, acc ->
         Map.merge(freq, acc, fn _k, v1, v2 -> v1 + v2 end)
       end)
 
-  defp chunk_count(text, workers),
-    do: text |> String.length() |> Integer.floor_div(workers) |> max(1)
+  defp chunk_count(_text, _workers), do: 2000
 
-  defp asd(text),
+  defp chunk_frequency(text),
     do:
       text
       |> String.codepoints()
-      |> Stream.filter(& Regex.match?(~r/[\p{L}]/u, &1))
+      |> Stream.filter(&Regex.match?(@regex, &1))
       |> Stream.map(&String.downcase/1)
       |> Enum.frequencies()
 end
